@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Pred-Landslide{% endblock %}
+
+{% block styles %}
+<style>
+    .error-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+        background-color: var(--bg-primary);
+    }
+
+    .error-content {
+        max-width: 600px;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .error-icon {
+        font-size: 5rem;
+        color: var(--accent-color);
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .error-title {
+        font-size: 2.5rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+
+    .error-message {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .error-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .error-btn.primary {
+        background-color: var(--accent-color);
+        color: white;
+    }
+
+    .error-btn.secondary {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .error-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .error-btn.primary:hover {
+        background-color: var(--accent-color-dark);
+    }
+
+    .error-btn.secondary:hover {
+        background-color: var(--bg-primary);
+    }
+
+    .suggested-links {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .suggested-links h3 {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .links-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .suggested-link {
+        padding: 1rem;
+        background-color: var(--bg-secondary);
+        border-radius: 8px;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .suggested-link:hover {
+        transform: translateY(-2px);
+        background-color: var(--accent-color);
+        color: white;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @media (max-width: 768px) {
+        .error-title {
+            font-size: 2rem;
+        }
+
+        .error-message {
+            font-size: 1.1rem;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <i class="fas fa-mountain error-icon"></i>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-message">
+            Oops! It seems like you've wandered into unexplored territory. 
+            The page you're looking for might have moved or doesn't exist.
+        </p>
+        <div class="error-actions">
+            <a href="{{ url_for('home') }}" class="error-btn primary">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+            <button onclick="history.back()" class="error-btn secondary">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </button>
+        </div>
+
+        <div class="suggested-links">
+            <h3>You might be interested in:</h3>
+            <div class="links-grid">
+                <a href="{{ url_for('predict') }}" class="suggested-link">
+                    <i class="fas fa-chart-line"></i>
+                    Prediction Model
+                </a>
+                <a href="{{ url_for('weather') }}" class="suggested-link">
+                    <i class="fas fa-cloud-rain"></i>
+                    Weather Updates
+                </a>
+                <a href="{{ url_for('map') }}" class="suggested-link">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Landslide Map
+                </a>
+                <a href="{{ url_for('contact') }}" class="suggested-link">
+                    <i class="fas fa-envelope"></i>
+                    Contact Us
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

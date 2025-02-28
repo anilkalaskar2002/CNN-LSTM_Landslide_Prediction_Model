@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}Predict - Pred-Landslide{% endblock %}
+
+{% block extra_head %}
+<style>
+    .prediction-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--text-secondary);
+        border-radius: 4px;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.2);
+    }
+
+    .submit-btn {
+        background-color: var(--accent-color);
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .result-section {
+        margin-top: 2rem;
+        padding: 2rem;
+        border-radius: 8px;
+        background-color: var(--bg-primary);
+        display: none;
+    }
+
+    .result-section.show {
+        display: block;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .parameter-card {
+        background-color: var(--bg-primary);
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .parameter-card h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+
+    .info-tooltip {
+        display: inline-block;
+        position: relative;
+        margin-left: 0.5rem;
+        color: var(--text-secondary);
+        cursor: help;
+    }
+
+    .info-tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0.5rem;
+        background-color: var(--navbar-bg);
+        color: white;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        z-index: 1;
+    }
+
+    .data-source {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+    }
+
+    .image-upload-container {
+        margin-top: 0.5rem;
+    }
+
+    .form-control-file {
+        display: none;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 200px;
+        border: 2px dashed var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .image-preview:hover {
+        border-color: var(--accent-color);
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .upload-placeholder {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--bg-secondary);
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .upload-placeholder i {
+        font-size: 2.5rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+
+    .upload-placeholder p {
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .upload-placeholder small {
+        color: var(--text-secondary);
+    }
+
+    .help-text {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    /* Drag and drop styles */
+    .image-preview.dragover {
+        border-color: var(--accent-color);
+        background-color: rgba(var(--accent-color-rgb), 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="content-wrapper">
+        <h1><i class="fas fa-chart-line"></i> Landslide Prediction</h1>
+        
+        <div class="card">
+            <h2>Input Parameters</h2>
+            <p>Enter the following parameters to predict landslide probability in your area.</p>
+            
+            <form id="predictionForm" onsubmit="return handlePrediction(event)">
+                <div class="prediction-form">
+                    <!-- Terrain Parameters -->
+                    <div class="parameter-card">
+                        <h3><i class="fas fa-mountain"></i> Terrain Data</h3>
+                        <div class="data-source">
+                            <i class="fas fa-database"></i> Data sources:
+                            <a href="https://earthexplorer.usgs.gov/" target="_blank">SRTM</a>,
+                            <a href="https://search.asf.alaska.edu/" target="_blank">ALOS PALSAR</a>
+                        </div>
+                        <div class="form-group">
+                            <label>Slope Angle (degrees)
+                                <span class="info-tooltip" data-tooltip="Slope angle of the terrain">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </label>
+                            <input type="number" class="form-control" name="slope" required min="0" max="90">
+                        </div>
+                        <div class="form-group">
+                            <label>Elevation (meters)
+                                <span class="info-tooltip" data-tooltip="Height above sea level">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </label>
+                            <input type="number" class="form-control" name="elevation" required>
+                        </div>
+                        <div class="form-group">
+                            <label>NDVI Value
+                                <span class="info-tooltip" data-tooltip="Normalized Difference Vegetation Index (-1 to 1)">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </label>
+                            <input type="number" class="form-control" name="ndvi" required min="-1" max="1" step="0.01">
+                            <small class="help-text">NDVI ranges from -1 to 1, where higher values indicate denser vegetation</small>
+                        </div>
+                    </div>
+
+                    <!-- Weather Parameters -->
+                    <div class="parameter-card">
+                        <h3><i class="fas fa-cloud-rain"></i> Weather Data</h3>
+                        <div class="data-source">
+                            <i class="fas fa-database"></i> Data source: 
+                            <a href="https://www.weatherapi.com/" target="_blank">WeatherAPI</a>
+                        </div>
+                        <div class="form-group">
+                            <label>Rainfall (mm/day)
+                                <span class="info-tooltip" data-tooltip="Daily rainfall amount">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </label>
+                            <input type="number" class="form-control" name="rainfall" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Soil Moisture (%)
+                                <span class="info-tooltip" data-tooltip="Current soil moisture content">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </label>
+                            <input type="number" class="form-control" name="soil_moisture" required min="0" max="100">
+                        </div>
+                    </div>
+
+                    <!-- Ground Conditions -->
+                    <div class="parameter-card">
+                        <h3><i class="fas fa-layer-group"></i> Ground Conditions</h3>
+                        <div class="data-source">
+                            <i class="fas fa-database"></i> Data source: RGB Image Analysis
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Area Image
+                                <span class="info-tooltip" data-tooltip="Upload a clear RGB image of the area">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </label>
+                            <div class="image-upload-container">
+                                <input type="file" class="form-control-file" name="area_image" id="areaImage" 
+                                       accept="image/*" onchange="previewImage(this)">
+                                <div class="image-preview" id="imagePreview">
+                                    <img src="" alt="Preview" id="preview" style="display: none;">
+                                    <div class="upload-placeholder">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Drag & drop an image or click to browse</p>
+                                        <small>Supported formats: JPG, PNG (max 5MB)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-calculator"></i> Calculate Prediction
+                </button>
+            </form>
+        </div>
+
+        <!-- Result Section (Hidden by default) -->
+        <div id="resultSection" class="result-section">
+            <h2><i class="fas fa-chart-pie"></i> Prediction Results</h2>
+            <div id="predictionResult"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Weather API integration
+    async function fetchWeatherData() {
+        try {
+            const location = document.getElementById('location').value || 'Purna,Maharashtra';
+            const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            // Auto-fill weather inputs
+            document.querySelector('input[name="rainfall"]').value = data.current.precip_mm;
+            document.querySelector('input[name="soil_moisture"]').value = 
+                Math.min(100, Math.round(data.current.humidity * 0.8)); // Approximate soil moisture
+        } catch (error) {
+            console.error('Error fetching weather data:', error);
+        }
+    }
+
+    // Add location input for weather data
+    document.querySelector('.parameter-card:nth-child(2)').insertAdjacentHTML('afterbegin', `
+        <div class="form-group">
+            <label>Location
+                <span class="info-tooltip" data-tooltip="Location for weather data">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+            </label>
+            <div class="location-input">
+                <input type="text" class="form-control" id="location" placeholder="Enter city name">
+                <button type="button" class="fetch-btn" onclick="fetchWeatherData()">
+                    <i class="fas fa-sync-alt"></i> Fetch Weather
+                </button>
+            </div>
+        </div>
+    `);
+
+    function handlePrediction(event) {
+        event.preventDefault();
+        
+        // Show result section with animation
+        const resultSection = document.getElementById('resultSection');
+        resultSection.classList.add('show');
+        
+        // In a real application, you would send the form data to your backend
+        // For now, we'll just show a dummy result
+        const predictionResult = document.getElementById('predictionResult');
+        predictionResult.innerHTML = `
+            <div class="card">
+                <h3 style="color: var(--danger-color);">High Risk (85% Probability)</h3>
+                <p>Based on the provided parameters, there is a high risk of landslide in this area.</p>
+                <p>Recommendations:</p>
+                <ul>
+                    <li>Monitor the area closely during rainfall</li>
+                    <li>Implement proper drainage systems</li>
+                    <li>Consider evacuation during heavy rainfall</li>
+                </ul>
+            </div>
+        `;
+        
+        return false;
+    }
+
+    // Image preview functionality
+    function previewImage(input) {
+        const preview = document.getElementById('preview');
+        const placeholder = document.querySelector('.upload-placeholder');
+        
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            // Check file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Drag and drop functionality
+    const imagePreview = document.getElementById('imagePreview');
+    const fileInput = document.getElementById('areaImage');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        imagePreview.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        imagePreview.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        imagePreview.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        imagePreview.classList.add('dragover');
+    }
+
+    function unhighlight(e) {
+        imagePreview.classList.remove('dragover');
+    }
+
+    imagePreview.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        fileInput.files = files;
+        previewImage(fileInput);
+    }
+
+    // Click to upload
+    imagePreview.addEventListener('click', () => {
+        fileInput.click();
+    });
+</script>
+{% endblock %} 

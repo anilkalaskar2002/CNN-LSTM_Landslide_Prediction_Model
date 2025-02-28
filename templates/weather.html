@@ -1,0 +1,811 @@
+{% extends "base.html" %}
+
+{% block title %}Weather - Pred-Landslide{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    .search-container {
+        margin-bottom: 2rem;
+        background-color: var(--bg-secondary);
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid rgba(var(--text-secondary), 0.3);
+        border-radius: 4px;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    .search-btn {
+        background-color: var(--accent-color);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .weather-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .weather-card {
+        background-color: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(var(--text-secondary), 0.1);
+    }
+
+    .weather-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .weather-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1rem;
+    }
+
+    .temperature {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .weather-details {
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .rainfall-container {
+        margin-top: 2rem;
+        padding: 2rem;
+        background-color: var(--bg-secondary);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(var(--text-secondary), 0.1);
+    }
+
+    .chart-container {
+        height: 300px;
+        margin-top: 1rem;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+    }
+
+    .error-message {
+        color: var(--danger-color);
+        text-align: center;
+        padding: 1rem;
+        background-color: var(--bg-secondary);
+        border-radius: 4px;
+        margin: 1rem 0;
+        border: 1px solid var(--danger-color);
+    }
+
+    .rainfall-map-container {
+        margin-top: 2rem;
+        padding: 2rem;
+        background-color: var(--bg-secondary);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(var(--text-secondary), 0.1);
+    }
+
+    #rainfallMap {
+        height: 500px;
+        width: 100%;
+        border-radius: 8px;
+        margin: 1rem 0;
+        background-color: var(--bg-primary);
+    }
+
+    .legend {
+        background-color: var(--bg-secondary);
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(var(--text-secondary), 0.1);
+        color: var(--text-primary);
+    }
+
+    .legend i {
+        width: 18px;
+        height: 18px;
+        float: left;
+        margin-right: 8px;
+        opacity: 0.7;
+    }
+
+    .legend-item {
+        margin-bottom: 5px;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--bg-primary);
+        opacity: 0.8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        border-radius: 8px;
+    }
+
+    /* Dark mode specific adjustments */
+    [data-theme="dark"] .leaflet-tile {
+        filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+    }
+
+    [data-theme="dark"] .leaflet-container {
+        background: #303030;
+    }
+
+    [data-theme="dark"] .leaflet-popup-content-wrapper,
+    [data-theme="dark"] .leaflet-popup-tip {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    /* Additional styles for real-time features */
+    .live-badge {
+        background-color: #e53e3e;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-left: 8px;
+    }
+
+    .current-day {
+        border: 2px solid var(--accent-color);
+    }
+
+    .last-updated {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 10px;
+    }
+
+    .auto-update-info {
+        text-align: center;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+    }
+
+    .auto-update-toggle {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        margin-left: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .auto-update-toggle:hover {
+        background-color: var(--accent-color-dark);
+    }
+
+    .cache-info {
+        text-align: center;
+        margin-top: 1rem;
+        color: var(--text-secondary);
+    }
+
+    .location-info {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .location-info h2 {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .coordinates {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    .feels-like {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        display: block;
+        margin-top: 5px;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .fa-spin {
+        animation: spin 2s linear infinite;
+    }
+
+    .rainfall-popup {
+        padding: 10px;
+        max-width: 250px;
+    }
+
+    .rainfall-popup h3 {
+        margin: 0 0 10px 0;
+        color: var(--accent-color);
+        border-bottom: 1px solid var(--accent-color);
+        padding-bottom: 5px;
+    }
+
+    .rainfall-details p {
+        margin: 5px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .rainfall-details i {
+        width: 16px;
+        text-align: center;
+        color: var(--accent-color);
+    }
+
+    .current-location {
+        border-left: 4px solid #ff0000;
+    }
+
+    .refresh-btn {
+        padding: 8px 12px;
+        background: white;
+        border: 2px solid rgba(0,0,0,0.2);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .refresh-btn:hover {
+        background: #f4f4f4;
+    }
+
+    [data-theme="dark"] .refresh-btn {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border-color: rgba(255,255,255,0.2);
+    }
+
+    [data-theme="dark"] .refresh-btn:hover {
+        background: var(--bg-primary);
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="content-wrapper">
+        <h1><i class="fas fa-cloud-sun-rain"></i> Weather Information</h1>
+
+        <div class="search-container">
+            <form class="search-form" id="weatherForm" onsubmit="return fetchWeather(event)">
+                <input type="text" class="search-input" id="location" 
+                       placeholder="Enter city name or coordinates" required>
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+        </div>
+
+        <div id="weatherContent">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p>Loading weather data...</p>
+            </div>
+        </div>
+
+        <div class="rainfall-container">
+            <h2><i class="fas fa-cloud-rain"></i> Rainfall Forecast</h2>
+            <div class="chart-container">
+                <canvas id="rainfallChart"></canvas>
+            </div>
+        </div>
+
+        <div class="rainfall-map-container">
+            <h2><i class="fas fa-map-marked-alt"></i> India Rainfall Map</h2>
+            <div id="rainfallMap"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let rainfallChart = null;
+    let weatherUpdateInterval = null;
+    const UPDATE_INTERVAL = 300000; // 5 minutes
+
+    // Function to format date
+    function formatDate(date) {
+        return new Date(date).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+    }
+
+    // Function to create/update rainfall chart
+    function updateRainfallChart(dates, rainfallData) {
+        const ctx = document.getElementById('rainfallChart').getContext('2d');
+        
+        if (rainfallChart) {
+            rainfallChart.destroy();
+        }
+
+        rainfallChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Rainfall (mm)',
+                    data: rainfallData,
+                    backgroundColor: 'rgba(99, 179, 237, 0.6)',
+                    borderColor: 'rgba(99, 179, 237, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Rainfall (mm/day)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    // Function to create weather cards with real-time data
+    function createWeatherCards(data) {
+        const cards = data.forecast.forecastday.map(day => {
+            const date = new Date(day.date);
+            const isToday = date.toDateString() === new Date().toDateString();
+            const currentData = isToday ? data.current : null;
+
+            return `
+                <div class="weather-card ${isToday ? 'current-day' : ''}">
+                    <div class="date">
+                        ${formatDate(day.date)}
+                        ${isToday ? '<span class="live-badge">LIVE</span>' : ''}
+                    </div>
+                <img src="${day.day.condition.icon}" alt="${day.day.condition.text}" class="weather-icon">
+                    <div class="temperature">
+                        ${isToday ? currentData.temp_c : day.day.avgtemp_c}°C
+                        ${isToday ? `<span class="feels-like">Feels like ${currentData.feelslike_c}°C</span>` : ''}
+                    </div>
+                <div class="weather-details">
+                        <p>${isToday ? currentData.condition.text : day.day.condition.text}</p>
+                        <p>
+                            <i class="fas fa-cloud-rain"></i> 
+                            Rainfall: ${isToday ? currentData.precip_mm : day.day.totalprecip_mm} mm
+                        </p>
+                        <p>
+                            <i class="fas fa-tint"></i> 
+                            Humidity: ${isToday ? currentData.humidity : day.day.avghumidity}%
+                        </p>
+                        ${isToday ? `
+                            <p>
+                                <i class="fas fa-wind"></i> 
+                                Wind: ${currentData.wind_kph} km/h
+                            </p>
+                            <p>
+                                <i class="fas fa-sun"></i> 
+                                UV Index: ${currentData.uv}
+                            </p>
+                        ` : ''}
+                    </div>
+                    ${isToday ? `
+                        <div class="last-updated">
+                            Last updated: ${formatDate(currentData.last_updated)}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="auto-update-info">
+                <i class="fas fa-sync${weatherUpdateInterval ? ' fa-spin' : ''}"></i>
+                Auto-updating every ${UPDATE_INTERVAL / 60000} minutes
+                <button onclick="toggleAutoUpdate()" class="auto-update-toggle">
+                    ${weatherUpdateInterval ? 'Stop' : 'Start'} Auto-update
+                </button>
+            </div>
+            <div class="weather-container">
+                ${cards}
+            </div>
+        `;
+    }
+
+    // Function to toggle auto-update
+    function toggleAutoUpdate() {
+        if (weatherUpdateInterval) {
+            clearInterval(weatherUpdateInterval);
+            weatherUpdateInterval = null;
+        } else {
+            fetchWeather(new Event('submit'));
+            weatherUpdateInterval = setInterval(() => {
+                fetchWeather(new Event('submit'));
+            }, UPDATE_INTERVAL);
+        }
+        document.querySelector('.auto-update-toggle').textContent = 
+            weatherUpdateInterval ? 'Stop Auto-update' : 'Start Auto-update';
+        document.querySelector('.fa-sync').classList.toggle('fa-spin');
+    }
+
+    // Function to get color based on rainfall amount and severity
+    function getRainfallColor(rainfall) {
+        // Enhanced color scale for better visualization
+        return rainfall > 100 ? '#67000d' :  // Very Heavy (Dark Red)
+               rainfall > 50  ? '#ef3b2c' :  // Heavy (Red)
+               rainfall > 25  ? '#fc9272' :  // Moderate to Heavy (Light Red)
+               rainfall > 10  ? '#2171b5' :  // Moderate (Blue)
+               rainfall > 5   ? '#6baed6' :  // Light to Moderate (Light Blue)
+               rainfall > 0   ? '#bdd7e7' :  // Light (Very Light Blue)
+                              '#f7fbff';     // No Rain (White)
+    }
+
+    // Global variables for map and markers
+    let rainfallMap = null;
+    let rainfallMarkers = [];
+    let currentLocationMarker = null;
+
+    // Function to update rainfall markers on the map
+    async function updateRainfallMap(location = null) {
+        if (!rainfallMap) return;
+
+        // Clear existing markers
+        rainfallMarkers.forEach(marker => marker.remove());
+        rainfallMarkers = [];
+        if (currentLocationMarker) {
+            currentLocationMarker.remove();
+        }
+
+        // Add loading overlay
+        const mapContainer = document.getElementById('rainfallMap');
+        let loadingOverlay = mapContainer.querySelector('.loading-overlay');
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Updating rainfall data...</p>
+                </div>
+            `;
+            mapContainer.appendChild(loadingOverlay);
+        }
+
+        try {
+            // Fetch data for Indian cities
+            const cityPromises = indianCities.map(async ({ city, coords }) => {
+                try {
+                    const response = await fetch(`/api/weather?location=${encodeURIComponent(city)}`);
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error.message);
+
+                    return {
+                        city,
+                        coords,
+                        rainfall: data.current.precip_mm,
+                        forecast: data.forecast.forecastday[0].day.totalprecip_mm,
+                        condition: data.current.condition.text,
+                        humidity: data.current.humidity,
+                        lastUpdated: data.current.last_updated
+                    };
+                } catch (error) {
+                    console.error(`Error fetching data for ${city}:`, error);
+                    return null;
+                }
+            });
+
+            const results = await Promise.all(cityPromises);
+
+            // Add markers for each city
+            results.forEach(data => {
+                if (!data) return;
+
+                const color = getRainfallColor(data.rainfall + data.forecast);
+                const radius = Math.min(30, Math.max(10, (data.rainfall + data.forecast) * 0.5));
+
+                const circle = L.circleMarker(data.coords, {
+                    radius: radius,
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(rainfallMap);
+
+                // Enhanced popup content
+                const popupContent = `
+                    <div class="rainfall-popup">
+                        <h3>${data.city}</h3>
+                        <div class="rainfall-details">
+                            <p><i class="fas fa-cloud-rain"></i> Current Rainfall: ${data.rainfall.toFixed(1)} mm</p>
+                            <p><i class="fas fa-calendar-day"></i> Forecast Today: ${data.forecast.toFixed(1)} mm</p>
+                            <p><i class="fas fa-cloud"></i> Condition: ${data.condition}</p>
+                            <p><i class="fas fa-tint"></i> Humidity: ${data.humidity}%</p>
+                            <small class="last-updated">
+                                <i class="fas fa-clock"></i> Updated: ${formatDate(data.lastUpdated)}
+                            </small>
+                        </div>
+                    </div>
+                `;
+
+                circle.bindPopup(popupContent);
+                rainfallMarkers.push(circle);
+            });
+
+            // Add marker for searched location if provided
+            if (location) {
+                try {
+                    const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
+                    const data = await response.json();
+                    if (!data.error) {
+                        const coords = [data.location.lat, data.location.lon];
+                        const color = getRainfallColor(data.current.precip_mm + data.forecast.forecastday[0].day.totalprecip_mm);
+                        
+                        currentLocationMarker = L.circleMarker(coords, {
+                            radius: 15,
+                            fillColor: color,
+                            color: '#ff0000',
+                            weight: 3,
+                            opacity: 1,
+                            fillOpacity: 0.9
+                        }).addTo(rainfallMap);
+
+                        const popupContent = `
+                            <div class="rainfall-popup current-location">
+                                <h3>${data.location.name}, ${data.location.region}</h3>
+                                <div class="rainfall-details">
+                                    <p><i class="fas fa-cloud-rain"></i> Current Rainfall: ${data.current.precip_mm.toFixed(1)} mm</p>
+                                    <p><i class="fas fa-calendar-day"></i> Forecast Today: ${data.forecast.forecastday[0].day.totalprecip_mm.toFixed(1)} mm</p>
+                                    <p><i class="fas fa-cloud"></i> Condition: ${data.current.condition.text}</p>
+                                    <p><i class="fas fa-tint"></i> Humidity: ${data.current.humidity}%</p>
+                                    <small class="last-updated">
+                                        <i class="fas fa-clock"></i> Updated: ${formatDate(data.current.last_updated)}
+                                    </small>
+                                </div>
+                            </div>
+                        `;
+
+                        currentLocationMarker.bindPopup(popupContent).openPopup();
+                        rainfallMap.setView(coords, 7);
+                    }
+                } catch (error) {
+                    console.error('Error adding location marker:', error);
+                }
+            }
+
+            // Update legend
+            updateLegend();
+
+        } catch (error) {
+            console.error('Error updating rainfall map:', error);
+        } finally {
+            // Remove loading overlay
+            if (loadingOverlay) {
+                loadingOverlay.remove();
+            }
+        }
+    }
+
+    // Function to update the legend
+    function updateLegend() {
+        const legend = document.querySelector('.legend');
+        if (legend) {
+            legend.remove();
+        }
+
+        const newLegend = L.control({ position: 'bottomright' });
+        newLegend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend');
+            const grades = [0, 5, 10, 25, 50, 100];
+            const labels = ['<h4>Rainfall Intensity</h4>'];
+
+            for (let i = 0; i < grades.length; i++) {
+                const from = grades[i];
+                const to = grades[i + 1];
+                labels.push(
+                    '<div class="legend-item">' +
+                    `<i style="background:${getRainfallColor(from + 1)}"></i> ` +
+                    `${from}${to ? '&ndash;' + to : '+'} mm` +
+                    '</div>'
+                );
+            }
+
+            div.innerHTML = labels.join('');
+            return div;
+        };
+        newLegend.addTo(rainfallMap);
+    }
+
+    // Function to fetch weather data
+    async function fetchWeather(event) {
+        event.preventDefault();
+        const location = document.getElementById('location').value || 'Purna,Maharashtra';
+        const weatherContent = document.getElementById('weatherContent');
+
+        try {
+            weatherContent.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading weather data...</p>
+                </div>
+            `;
+
+            const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            // Update weather cards
+            weatherContent.innerHTML = `
+                <div class="location-info">
+                    <h2>
+                        <i class="fas fa-map-marker-alt"></i>
+                        ${data.location.name}, ${data.location.region}
+                        <small>${data.location.country}</small>
+                    </h2>
+                    <p class="coordinates">
+                        <i class="fas fa-compass"></i>
+                        Lat: ${data.location.lat}, Long: ${data.location.lon}
+                    </p>
+                </div>
+                ${createWeatherCards(data)}
+            `;
+
+            // Update rainfall chart
+            const dates = data.forecast.forecastday.map(day => formatDate(day.date));
+            const rainfall = data.forecast.forecastday.map(day => day.day.totalprecip_mm);
+            updateRainfallChart(dates, rainfall);
+
+            // Update rainfall map with new location
+            updateRainfallMap(location);
+
+            // Show cache status
+            if (data.metadata) {
+                const cacheInfo = document.createElement('div');
+                cacheInfo.className = 'cache-info';
+                cacheInfo.innerHTML = `
+                    <small>
+                        <i class="fas fa-clock"></i>
+                        Cache expires in: ${Math.round(data.metadata.cache_expires_in)} seconds
+                    </small>
+                `;
+                weatherContent.appendChild(cacheInfo);
+            }
+
+        } catch (error) {
+            weatherContent.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Error: ${error.message || 'Failed to fetch weather data'}
+                </div>
+            `;
+        }
+    }
+
+    // Cities to track rainfall
+    const indianCities = [
+        { city: "Mumbai", coords: [19.0760, 72.8777] },
+        { city: "Delhi", coords: [28.6139, 77.2090] },
+        { city: "Bangalore", coords: [12.9716, 77.5946] },
+        { city: "Chennai", coords: [13.0827, 80.2707] },
+        { city: "Kolkata", coords: [22.5726, 88.3639] },
+        { city: "Hyderabad", coords: [17.3850, 78.4867] },
+        { city: "Pune", coords: [18.5204, 73.8567] },
+        { city: "Ahmedabad", coords: [23.0225, 72.5714] },
+        { city: "Jaipur", coords: [26.9124, 75.7873] },
+        { city: "Lucknow", coords: [26.8467, 80.9462] },
+        { city: "Guwahati", coords: [26.1445, 91.7362] },
+        { city: "Thiruvananthapuram", coords: [8.5241, 76.9366] },
+        { city: "Bhopal", coords: [23.2599, 77.4126] },
+        { city: "Dehradun", coords: [30.3165, 78.0322] },
+        { city: "Shillong", coords: [25.5788, 91.8933] }
+    ];
+
+    // Initialize rainfall map
+    function initRainfallMap() {
+        // Initialize map centered on India if not already initialized
+        if (!rainfallMap) {
+            rainfallMap = L.map('rainfallMap').setView([20.5937, 78.9629], 5);
+
+            // Add OpenStreetMap tiles with appropriate styling
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+            }).addTo(rainfallMap);
+
+            // Add refresh control
+        const refreshControl = L.control({ position: 'topleft' });
+            refreshControl.onAdd = function() {
+            const btn = L.DomUtil.create('button', 'refresh-btn');
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+            btn.onclick = function() {
+                    updateRainfallMap(document.getElementById('location').value);
+            };
+            return btn;
+        };
+            refreshControl.addTo(rainfallMap);
+        }
+
+        // Update the rainfall data
+        updateRainfallMap();
+    }
+
+    // Initialize both weather data and rainfall map on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchWeather(new Event('submit'));
+        initRainfallMap();
+        // Start auto-update
+        toggleAutoUpdate();
+    });
+</script>
+{% endblock %} 

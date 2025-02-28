@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Map - Pred-Landslide{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="content-wrapper">
+        <h1><i class="fas fa-map-marked-alt"></i> Landslide Map</h1>
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add your map initialization code here
+    // Similar to the one in index.html
+</script>
+{% endblock %} 

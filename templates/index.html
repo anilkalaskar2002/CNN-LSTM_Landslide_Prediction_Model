@@ -1,0 +1,776 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* Hero section styles */
+    .hero-section {
+        position: relative;
+        height: 600px;
+        width: 100%;
+        background-image: url('static/img/hero.jpeg');
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+        margin-bottom: 0;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        padding: 0 20px;
+    }
+
+    .hero-content h1 {
+        font-size: 2.8rem;
+        margin-bottom: 20px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .hero-content p {
+        font-size: 1.4rem;
+        margin-bottom: 30px;
+        font-weight: 300;
+    }
+
+    .cta-button {
+        display: inline-block;
+        padding: 15px 30px;
+        background-color: #2ecc71;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+    }
+
+    .cta-button:hover {
+        background-color: #27ae60;
+    }
+
+    /* Map container style */
+    #map-container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    /* Popup styles */
+    .leaflet-popup-content {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .landslide-info {
+        margin: 5px 0;
+    }
+
+    /* Introduction section styles */
+    .intro-section {
+        background-color: var(--bg-primary);
+        padding: 4rem 2rem;
+        margin-bottom: 2rem;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .intro-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .intro-content {
+        color: var(--text-primary);
+    }
+
+    .intro-content h2 {
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
+        color: var(--accent-color);
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .intro-content h2 i {
+        font-size: 2rem;
+        color: var(--accent-color);
+    }
+
+    .intro-content p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+    }
+
+    .key-stats {
+        background-color: var(--bg-secondary);
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    .key-stats:hover {
+        transform: translateY(-5px);
+    }
+
+    .key-stats h3 {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+        color: var(--accent-color);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .key-stats h3 i {
+        font-size: 1.5rem;
+    }
+
+    .stat-item {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        border-left: 4px solid var(--accent-color);
+        background-color: var(--bg-primary);
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateX(5px);
+        border-left-color: var(--warning-color);
+    }
+
+    .stat-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-description {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+        .intro-section {
+            padding: 2rem 1rem;
+        }
+
+        .intro-content h2 {
+            font-size: 1.8rem;
+        }
+
+        .stat-number {
+            font-size: 1.6rem;
+        }
+    }
+
+    /* News Section Styles */
+    .news-section {
+        background-color: var(--bg-primary);
+        padding: 3rem 0;
+        margin-top: -2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .news-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    .news-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .news-header h2 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--accent-color);
+        font-size: 1.8rem;
+    }
+
+    .news-refresh {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .last-updated-text {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .refresh-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+        background-color: var(--accent-color);
+        color: white;
+    }
+
+    .refresh-btn i.rotating {
+        animation: rotate 1s linear infinite;
+    }
+
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        position: relative;
+        min-height: 200px;
+    }
+
+    .news-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--bg-secondary);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+        height: 100%;
+    }
+
+    .news-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .news-image-container {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        background-color: var(--bg-secondary);
+        overflow: hidden;
+    }
+
+    .news-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.3s ease;
+    }
+
+    .news-image-fallback {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-color-dark));
+        color: white;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        line-height: 1.4;
+    }
+
+    .news-image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        color: white;
+        font-size: 0.9rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .news-card:hover .news-image-overlay {
+        opacity: 1;
+    }
+
+    .news-content {
+        flex: 1;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--bg-secondary);
+    }
+
+    .news-title {
+        font-size: 1.2rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .news-description {
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .news-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--border-color);
+        padding-top: 1rem;
+        margin-top: auto;
+    }
+
+    .news-source {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .news-date {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+        .news-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .news-refresh {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .news-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .news-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        z-index: 1;
+    }
+
+    .news-badge.recent {
+        background-color: var(--accent-color);
+        color: white;
+    }
+
+    .news-badge.historical {
+        background-color: var(--warning-color);
+        color: white;
+    }
+
+    .historical-news {
+        position: relative;
+    }
+
+    .historical-news::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            to bottom,
+            rgba(var(--bg-secondary-rgb), 0.1),
+            rgba(var(--bg-secondary-rgb), 0.05)
+        );
+        pointer-events: none;
+        z-index: 1;
+        border-radius: 12px;
+    }
+
+    :root {
+        --bg-secondary-rgb: 240, 245, 249;
+    }
+
+    [data-theme="dark"] {
+        --bg-secondary-rgb: 45, 55, 72;
+    }
+
+    [data-theme="dark"] .news-image-fallback {
+        background: linear-gradient(135deg, var(--accent-color-dark), var(--accent-color));
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="content-wrapper">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1>Predicting Landslides Before They Happen: AI-Driven Insights & Solutions</h1>
+                <p>Real-time monitoring and deep learning-based landslide prediction system.</p>
+                <a href="{{ url_for('predict') }}" class="cta-button">Try Prediction Model</a>
+            </div>
+        </div>
+
+        <!-- News Section -->
+        <section class="news-section">
+            <div class="news-container">
+                <div class="news-header">
+                    <h2><i class="fas fa-newspaper"></i> Latest Landslide Updates</h2>
+                    <div class="news-refresh">
+                        <span class="last-updated-text">Auto-updates every 5 minutes</span>
+                        <button class="refresh-btn" onclick="fetchNews()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="news-grid" id="newsContainer">
+                    <div class="loading-spinner">
+                        <div class="spinner-trail">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Introduction Section -->
+        <section class="intro-section">
+            <div class="intro-container">
+                <div class="intro-content">
+                    <h2><i class="fas fa-shield-alt"></i>Understanding Landslide Prediction</h2>
+                    <p>Landslides represent one of nature's most devastating natural disasters, causing significant loss of life, property damage, and environmental destruction across India. These geological phenomena often strike with little warning, making prediction and early warning systems crucial for public safety.</p>
+                    <p>Our innovative approach combines artificial intelligence and machine learning with real-time environmental data to revolutionize landslide prediction. By analyzing multiple factors including rainfall patterns, soil conditions, geological features, and historical data, our AI models can identify high-risk areas with unprecedented accuracy.</p>
+                    <p>Through our advanced monitoring system and predictive analytics, we're committed to protecting vulnerable communities and infrastructure. Our mission is to provide actionable insights that enable proactive measures against landslide risks, ultimately saving lives and preserving the environment.</p>
+                </div>
+                <div class="key-stats">
+                    <h3><i class="fas fa-chart-line"></i>Impact & Achievements</h3>
+                    <div class="stat-item">
+                        <div class="stat-number">
+                            <i class="fas fa-rupee-sign"></i>4.2 Billion
+                        </div>
+                        <div class="stat-description">Annual economic impact from landslides in India</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">
+                            <i class="fas fa-brain"></i>92%
+                        </div>
+                        <div class="stat-description">Prediction accuracy in monitored regions</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">
+                            <i class="fas fa-map-marked-alt"></i>5,000+
+                        </div>
+                        <div class="stat-description">High-risk zones under active monitoring</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">
+                            <i class="fas fa-clock"></i>12-48
+                        </div>
+                        <div class="stat-description">Hours of early warning time</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Map container -->
+        <div id="map-container">
+            <h2>Landslide Locations</h2>
+            <div id="map"></div>
+        </div>
+
+        <!-- Statistics section -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <i class="fas fa-exclamation-triangle fa-2x" style="color: var(--danger-color)"></i>
+                <div class="stat-number">150</div>
+                <p>Active Landslide Zones</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-cloud-rain fa-2x" style="color: var(--accent-color)"></i>
+                <div class="stat-number">85%</div>
+                <p>Rainfall-Related Cases</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-users fa-2x" style="color: var(--warning-color)"></i>
+                <div class="stat-number">10K+</div>
+                <p>People Protected</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Map initialization
+    function mapInit() {
+        // Initialize map
+        const map = L.map('map').setView([20.5937, 78.9629], 5); // Centered on India
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Sample landslide data
+        const landslideData = [
+            {
+                location: [30.7333, 79.0667],
+                title: "Uttarakhand Landslide",
+                date: "2023-08-15",
+                severity: "High",
+                details: "Major landslide affecting local communities"
+            },
+            {
+                location: [10.9167, 76.9667],
+                title: "Kerala Landslide",
+                date: "2023-07-20",
+                severity: "Medium",
+                details: "Rainfall-induced landslide in Western Ghats"
+            },
+            {
+                location: [27.3333, 88.6167],
+                title: "Sikkim Landslide",
+                date: "2023-09-10",
+                severity: "High",
+                details: "Mountain slope failure during monsoon"
+            }
+        ];
+
+        // Custom icon for landslide markers
+        const landslideIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        // Add markers for each landslide
+        landslideData.forEach(landslide => {
+            const marker = L.marker(landslide.location, {icon: landslideIcon}).addTo(map);
+            
+            // Create popup content
+            const popupContent = `
+                <div class="landslide-info">
+                    <h3>${landslide.title}</h3>
+                    <p><strong>Date:</strong> ${landslide.date}</p>
+                    <p><strong>Severity:</strong> ${landslide.severity}</p>
+                    <p><strong>Details:</strong> ${landslide.details}</p>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+        });
+
+        // Add zoom control
+        map.zoomControl.setPosition('bottomright');
+
+        // Add scale control
+        L.control.scale().addTo(map);
+    }
+
+    // News functionality
+    let newsUpdateInterval;
+
+    function createFallbackImage(title) {
+        const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        return `<div class="news-image-fallback">${safeTitle}</div>`;
+    }
+
+    async function fetchNews() {
+        const newsContainer = document.getElementById('newsContainer');
+        const refreshBtn = document.querySelector('.refresh-btn i');
+        
+        // Start loading animation
+        refreshBtn.classList.add('rotating');
+        
+        try {
+            const response = await fetch('/api/news');
+            const data = await response.json();
+
+            if (data.articles && data.articles.length > 0) {
+                newsContainer.innerHTML = data.articles.map(article => {
+                    const hasImage = article.urlToImage && article.urlToImage.startsWith('http');
+                    const safeTitle = article.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
+                    
+                    return `
+                        <div class="news-card ${!article.is_recent ? 'historical-news' : ''}">
+                            <div class="news-badge ${article.is_recent ? 'recent' : 'historical'}">
+                                ${article.is_recent ? 'Recent Update' : 'Historical News'}
+                            </div>
+                            <div class="news-image-container">
+                                ${hasImage ? `
+                                    <img 
+                                        src="${article.urlToImage}" 
+                                        alt="${safeTitle}"
+                                        class="news-image"
+                                        onerror="this.parentElement.innerHTML = createFallbackImage('${safeTitle}')"
+                                    >
+                                ` : createFallbackImage(safeTitle)}
+                                <div class="news-image-overlay">
+                                    ${article.source.name} • ${formatDate(article.publishedAt)}
+                                </div>
+                            </div>
+                            <div class="news-content">
+                                <h3 class="news-title">${article.title}</h3>
+                                <p class="news-description">${article.description || 'No description available.'}</p>
+                                <div class="news-meta">
+                                    <div class="news-source">
+                                        <i class="fas fa-newspaper"></i>
+                                        ${article.source.name}
+                                    </div>
+                                    <div class="news-date">
+                                        <i class="far fa-clock"></i>
+                                        ${formatDate(article.publishedAt)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Update last updated text
+                if (data.metadata) {
+                    document.querySelector('.last-updated-text').textContent = 
+                        `Last updated: ${formatDate(data.metadata.timestamp)}`;
+                }
+            } else {
+                newsContainer.innerHTML = `
+                    <div class="alert alert-info" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                        <i class="fas fa-info-circle"></i>
+                        No recent news available at the moment.
+                    </div>
+                `;
+            }
+        } catch (error) {
+            newsContainer.innerHTML = `
+                <div class="alert alert-danger" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Error fetching news updates. Please try again later.
+                </div>
+            `;
+        } finally {
+            // Stop loading animation
+            refreshBtn.classList.remove('rotating');
+        }
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
+        
+        // If less than 24 hours, show relative time
+        if (diff < 24 * 60 * 60 * 1000) {
+            const hours = Math.floor(diff / (60 * 60 * 1000));
+            if (hours < 1) {
+                const minutes = Math.floor(diff / (60 * 1000));
+                return `${minutes} minutes ago`;
+            }
+            return `${hours} hours ago`;
+        }
+        
+        // Otherwise show date
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // Initialize both map and news feed
+    document.addEventListener('DOMContentLoaded', () => {
+        mapInit();
+        fetchNews();
+        // Set up auto-refresh every 5 minutes
+        newsUpdateInterval = setInterval(fetchNews, 300000);
+    });
+
+    // Clean up interval when leaving the page
+    window.addEventListener('beforeunload', () => {
+        if (newsUpdateInterval) {
+            clearInterval(newsUpdateInterval);
+        }
+    });
+</script>
+{% endblock %} 

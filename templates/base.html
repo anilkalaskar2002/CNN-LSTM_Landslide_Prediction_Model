@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pred-Landslide{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    {% block extra_head %}{% endblock %}
+    {% block styles %}{% endblock %}
+    <script>
+        // Initialize theme from localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        });
+    </script>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/" class="logo">
+            <i class="fas fa-mountain"></i>
+            Pred-Landslide
+        </a>
+        <div class="nav-links">
+            <a href="/"><i class="fas fa-home"></i> Home</a>
+            <a href="/weather"><i class="fas fa-cloud-sun-rain"></i> Weather</a>
+            <a href="/predict"><i class="fas fa-chart-line"></i> Predict</a>
+            <a href="/map"><i class="fas fa-map-marked-alt"></i> Map</a>
+            <a href="/more-info"><i class="fas fa-info-circle"></i> Research & Data</a>
+            <a href="/contact"><i class="fas fa-envelope"></i> Contact Us</a>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-mountain"></i> Pred-Landslide</h3>
+                <p>Advanced landslide prediction system using neural networks and multi-source satellite data for early warning and disaster prevention.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3><i class="fas fa-link"></i> Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="/"><i class="fas fa-chevron-right"></i> Home</a></li>
+                    <li><a href="/weather"><i class="fas fa-chevron-right"></i> Weather</a></li>
+                    <li><a href="/predict"><i class="fas fa-chevron-right"></i> Predict</a></li>
+                    <li><a href="/map"><i class="fas fa-chevron-right"></i> Map</a></li>
+                    <li><a href="/more-info"><i class="fas fa-chevron-right"></i> More Info</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3><i class="fas fa-info-circle"></i> Resources</h3>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documentation</a></li>
+                    <li><a href="#"><i class="fas fa-book"></i> Research Papers</a></li>
+                    <li><a href="#"><i class="fas fa-chart-bar"></i> Data Analysis</a></li>
+                    <li><a href="#"><i class="fas fa-database"></i> Open Data</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3><i class="fas fa-phone"></i> Contact</h3>
+                <ul class="footer-links">
+                    <li><i class="fas fa-envelope"></i> info@pred-landslide.org</li>
+                    <li><i class="fas fa-phone"></i> +1 (800) LANDSLIDE</li>
+                    <li><i class="fas fa-map-marker-alt"></i> Earth Science Building<br>Research Valley, 110001</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2024 Pred-Landslide. All rights reserved. | Powered by CNN-LSTM Hybrid Model</p>
+        </div>
+    </footer>
+
+    <!-- Add this right after the <body> tag -->
+    <div class="animated-background">
+        <div class="parallax-layer layer-1" id="layer1"></div>
+        <div class="parallax-layer layer-2" id="layer2"></div>
+        <div class="parallax-layer layer-3" id="layer3"></div>
+        <div class="parallax-layer layer-4" id="layer4"></div>
+        <div class="parallax-layer layer-5" id="layer5"></div>
+    </div>
+
+    <script>
+        function updateThemeIcon(theme) {
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            // Update theme
+            html.setAttribute('data-theme', newTheme);
+            
+            // Save theme preference
+            localStorage.setItem('theme', newTheme);
+            
+            // Update icon
+            updateThemeIcon(newTheme);
+        }
+
+        function initBackgroundAnimations() {
+            // Expanded icon set
+            const icons = [
+                // Landslide and Nature Related
+                'fa-mountain',
+                'fa-water',
+                'fa-tree',
+                'fa-warning',
+                'fa-cloud-rain',
+                'fa-hill-rockslide',
+                'fa-hill-avalanche',
+                'fa-house-crack',
+                'fa-road-circle-exclamation',
+                // Weather Related
+                'fa-cloud-showers-heavy',
+                'fa-cloud-bolt',
+                'fa-droplet',
+                // Alert and Safety
+                'fa-triangle-exclamation',
+                'fa-shield-alt',
+                'fa-hard-hat',
+                'fa-person-shelter',
+                // Measurement and Monitoring
+                'fa-gauge-high',
+                'fa-satellite',
+                'fa-compass',
+                'fa-location-dot'
+            ];
+
+            const layers = [
+                document.getElementById('layer1'),
+                document.getElementById('layer2'),
+                document.getElementById('layer3'),
+                document.getElementById('layer4'),
+                document.getElementById('layer5')
+            ];
+
+            // Clear existing icons
+            layers.forEach(layer => layer.innerHTML = '');
+
+            // Create icons for each layer with increased density
+            layers.forEach((layer, layerIndex) => {
+                // Increased base count and scaling with layer
+                const count = 8 + layerIndex * 4;
+                
+                for (let i = 0; i < count; i++) {
+                    const icon = document.createElement('i');
+                    const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+                    icon.className = `background-icon fas ${randomIcon}`;
+                    
+                    // Add size class with more variety
+                    icon.classList.add(
+                        ['icon-xs', 'icon-sm', 'icon-md', 'icon-lg', 'icon-xl'][Math.floor(Math.random() * 5)]
+                    );
+                    
+                    // Random position and rotation
+                    icon.style.left = `${Math.random() * 100}%`;
+                    icon.style.animationDelay = `${Math.random() * 40}s`;
+                    icon.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    
+                    // Random color variation
+                    const hue = Math.random() * 20 - 10; // Slight color variation
+                    icon.style.filter = `hue-rotate(${hue}deg)`;
+                    
+                    layer.appendChild(icon);
+                }
+            });
+
+            // Enhanced parallax effect
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                layers.forEach((layer, index) => {
+                    const speed = (index + 1) * 0.25; // Increased parallax effect
+                    const scale = 1 + (index * 0.05); // Add subtle scaling
+                    layer.style.transform = `translateY(${scrolled * speed}px) scale(${scale})`;
+                });
+            });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initBackgroundAnimations);
+
+        // Reinitialize when theme changes
+        document.addEventListener('themeChanged', initBackgroundAnimations);
+
+        // More frequent refresh for smoother animation
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                initBackgroundAnimations();
+            }
+        }, 25000); // Reduced from 30000 to 25000ms
+
+        // Enhanced performance optimization
+        let animationFrame;
+        window.addEventListener('scroll', () => {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            animationFrame = requestAnimationFrame(() => {
+                const scrolled = window.pageYOffset;
+                const background = document.querySelector('.animated-background');
+                background.style.transform = `translateY(${scrolled * 0.15}px)`; // Increased effect
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}More Info - Pred-Landslide{% endblock %}
+
+{% block styles %}
+<style>
+    .info-header {
+        background: var(--bg-secondary);
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .info-header h1 {
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+        font-size: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .info-card {
+        background: var(--bg-secondary);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .info-card h3 {
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-card p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .info-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .info-list li {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+        position: relative;
+        color: var(--text-secondary);
+    }
+
+    .info-list li::before {
+        content: "•";
+        color: var(--accent-color);
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
+
+    .section-divider {
+        height: 2px;
+        background: var(--accent-color);
+        margin: 3rem 0;
+        opacity: 0.2;
+    }
+
+    .reference-section {
+        background: var(--bg-secondary);
+        padding: 2rem;
+        border-radius: 8px;
+        margin-top: 2rem;
+    }
+
+    .reference-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .reference-list li {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+        position: relative;
+        color: var(--text-secondary);
+    }
+
+    .reference-list li::before {
+        content: "📚";
+        position: absolute;
+        left: 0;
+    }
+
+    @media (max-width: 768px) {
+        .info-header {
+            padding: 2rem 0;
+        }
+
+        .info-header h1 {
+            font-size: 2rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="content-wrapper">
+        <div class="info-header">
+            <h1><i class="fas fa-info-circle"></i> Understanding Landslides</h1>
+            <p>Comprehensive information about landslides, their causes, impacts, and prevention strategies</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> What are Landslides?</h3>
+                <p>Landslides are geological phenomena that involve ground movement, such as rock falls, deep slope failures, and shallow debris flows. They are a major geological hazard occurring worldwide, causing significant loss of life and property.</p>
+                <ul class="info-list">
+                    <li>Can occur in developed and undeveloped areas</li>
+                    <li>Often triggered by natural and human-induced changes</li>
+                    <li>May happen suddenly or develop gradually</li>
+                    <li>Can move at varying speeds, from slow to rapid</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-cloud-rain"></i> Common Triggers</h3>
+                <ul class="info-list">
+                    <li>Heavy rainfall and prolonged precipitation</li>
+                    <li>Earthquakes and seismic activity</li>
+                    <li>Volcanic eruptions</li>
+                    <li>Human activities (deforestation, construction)</li>
+                    <li>Rapid snow melt</li>
+                    <li>Changes in groundwater levels</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-chart-line"></i> Impact Assessment</h3>
+                <ul class="info-list">
+                    <li>Annual global economic losses exceed $20 billion</li>
+                    <li>Affects infrastructure and transportation networks</li>
+                    <li>Disrupts communities and displaces populations</li>
+                    <li>Environmental damage and ecosystem disruption</li>
+                    <li>Long-term effects on regional development</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3><i class="fas fa-robot"></i> AI in Landslide Prediction</h3>
+                <p>Modern technology and artificial intelligence play a crucial role in predicting and preventing landslides:</p>
+                <ul class="info-list">
+                    <li>Machine learning models analyze historical data</li>
+                    <li>Real-time monitoring of soil conditions</li>
+                    <li>Satellite imagery analysis for risk assessment</li>
+                    <li>Early warning systems using AI predictions</li>
+                    <li>Integration with weather forecasting</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-shield-alt"></i> Prevention Strategies</h3>
+                <ul class="info-list">
+                    <li>Land-use planning and zoning regulations</li>
+                    <li>Slope stabilization techniques</li>
+                    <li>Drainage system improvements</li>
+                    <li>Vegetation management</li>
+                    <li>Regular monitoring and assessment</li>
+                    <li>Community awareness and education</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-hands-helping"></i> Emergency Response</h3>
+                <ul class="info-list">
+                    <li>Early warning system implementation</li>
+                    <li>Evacuation planning and procedures</li>
+                    <li>Emergency response team coordination</li>
+                    <li>Post-disaster recovery strategies</li>
+                    <li>Community resilience building</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="reference-section">
+            <h3><i class="fas fa-book"></i> Further Reading</h3>
+            <ul class="reference-list">
+                <li>USGS Landslide Hazards Program</li>
+                <li>World Bank Report on Landslide Risk Management</li>
+                <li>Geological Survey of India - Landslide Studies</li>
+                <li>NASA Earth Observatory - Landslide Studies</li>
+                <li>International Journal of Disaster Risk Reduction</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %} 
